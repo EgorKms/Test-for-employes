@@ -1,0 +1,167 @@
+from flask import Flask, render_template, request, redirect, url_for
+import random
+import csv
+
+app = Flask(__name__)
+
+# База вопросов и ответов
+questions = [
+    {
+        "question": "Создателем Linux является:",
+        "options": ["Билл Гейтс", "Ричард Столлман", "Линус Торвальдс", "Стив Джобс"],
+        "correct_answers": ["Ричард Столлман", "Линус Торвальдс"]
+    },
+    {
+        "question": "Linux – это?",
+        "options": ["Операционная система", "Семейство операционных систем", "Набор программ с открытым исходным кодом", "Комбинация ядра Linux и инструментов GNU"],
+        "correct_answers": ["Семейство операционных систем", "Комбинация ядра Linux и инструментов GNU"]
+    },
+    {
+        "question": "Какое ядро Linux-подобные ОС в современное время используют?",
+        "options": ["монолитное ядро", "микроядро", "гибридное ядро", "мультиядро"],
+        "correct_answers": ["монолитное ядро"]
+    },
+    {
+        "question": "Каким образом вывести неинтерактивную справку о параметрах команды?",
+        "options": ["<наименование_команды> -help", "help <наименование_команды>", "<наименование_команды> --help", "<наименование_команды> -h"],
+        "correct_answers": ["<наименование_команды> --help", "<наименование_команды> -h"]
+    },
+    {
+        "question": "Подробный мануал по команде можно получить:",
+        "options": ["manual <наименование_команды>", "man <наименование_команды>", "help <наименование_команды>", "<наименование_команды> man"],
+        "correct_answers": ["man <наименование_команды>"]
+    },
+     {
+        "question": "Имеет ли значение регистр вводимых данных в терминал при наборе команд и параметров?",
+        "options": ["да", "нет", "в зависимости от ситуации", "имел до версии ядра 3.10.0-0160.21.el6"],
+        "correct_answers": ["да"]
+    },
+    {
+        "question": "Как вывести путь до исполняемого файла команды?",
+        "options": ["locate <имя_команды>", "where <имя_команды>", "which <имя_команды>", "pwd <имя_команды>"],
+        "correct_answers": ["which <имя_команды>"]
+    },
+    {
+        "question": "Как выключить машину, работающую под управлением Linux?",
+        "options": ["poweroff", "shutdown -P", "halt -p", "reboot -p"],
+        "correct_answers": ["poweroff", "shutdown -P", "halt -p", "reboot -p"]
+    },
+    {
+        "question": "Как перезагрузить машину, работающую под управлением Linux?",
+        "options": ["poweroff --reboot", "shutdown -r", "halt --reboot", "reboot"],
+        "correct_answers": ["poweroff --reboot", "shutdown -r", "halt --reboot", "reboot"]
+    },
+    {
+        "question": "Что такое inode в Linux?",
+        "options": ["Информация об объекте файловой системы", "Метаданные", "Уникальный идентификатор, присвоенный каждому файлу и директории в Linux", "Специальный файл, который содержит информацию о файловой системе."],
+        "correct_answers": ["c.	Уникальный идентификатор, присвоенный каждому файлу и директории в Linux"]
+    },
+    {
+        "question": "Как можно узнать inode файла или директории в Linux?",
+        "options": ["ls -i", "inode <имя_файла>", "cat <имя_файла>", "stat <имя_файла>"],
+        "correct_answers": ["ls -i", "stat <имя_файла>"]
+    },
+    {
+        "question": "Какие атрибуты содержит inode в Linux?",
+        "options": ["Имя файла, размер, права доступа", "Имя файла, размер, дата создания", "Размер, права доступа, дата создания", "Владелец, группа, права доступа, расположение на жестком диске"],
+        "correct_answers": ["Размер, права доступа, дата создания", "Владелец, группа, права доступа, расположение на жестком диске"]
+    },
+     {
+        "question": "Что произойдет с inode файла при переименовании?",
+        "options": ["inode останется неизменным", "inode будет удален и создан новый", "inode будет перезаписан новыми данными", "inode будет перемещен в другую директорию"],
+        "correct_answers": ["inode останется неизменным"]
+    },
+    {
+        "question": "Что произойдет с inode файла при его удалении?",
+        "options": ["inode будет удален и освобожден для использования другими файлами", "inode останется неизменным, но файл будет помечен как удаленный", "inode будет перемещен в корзину", "inode будет скопирован и сохранен в резервной копии"],
+        "correct_answers": ["inode будет удален и освобожден для использования другими файлами"]
+    },
+    {
+        "question": "Какая команда используется для перемещения файла в Linux?",
+        "options": ["cp", "move", "mv", "copy"],
+        "correct_answers": ["mv"]
+    },
+    {
+        "question": "Какая команда используется для копирования файла в Linux?",
+        "options": ["cp", "move", "mv", "copy"],
+        "correct_answers": ["cp"]
+    },
+     {
+        "question": "Какая команда используется для удаления файла в Linux?",
+        "options": ["mkdir", "remove", "rm", "del"],
+        "correct_answers": ["rm"]
+    },
+    {
+        "question": "Какая команда используется для создания каталога в Linux?",
+        "options": ["mkdir", "dir", "makedir", "mvdir"],
+        "correct_answers": ["mkdir"]
+    },
+    {
+        "question": "Какая команда используется для удаления пустого каталога в Linux?",
+        "options": ["rmdir", "rm", "deldir", "del"],
+        "correct_answers": ["rmdir"]
+    },
+    {
+        "question": "Какая команда используется для изменения прав доступа к файлу или директории в Linux?",
+        "options": ["chown", "chmodx", "chmod", "chaccess"],
+        "correct_answers": ["chmod"]
+    }
+]
+
+# Конфигурация тестирования
+NUM_QUESTIONS = 12
+PASSING_PERCENTAGE = 80
+RESULTS_FILE = 'C://Хлам//учеба DE//Работа и задачи//ДС//Тесты ДС//Скрипт для тестирования//test_results.csv'  # Имя файла для сохранения результатов
+
+# Маршруты Flask
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        fio = request.form['fio']
+        selected_questions = random.sample(questions, NUM_QUESTIONS)
+        return render_template('test.html', fio=fio, questions=selected_questions, enumerate=enumerate)  # Передаем enumerate
+    return render_template('index.html')  # Форма для ввода ФИО
+
+@app.route('/result', methods=['POST'])
+def result():
+    fio = request.form['fio']
+    correct_answers_count = 0
+
+    # Получаем ответы пользователя и проверяем их
+    for question_index in range(NUM_QUESTIONS):
+        question_id = f"question_{question_index}"
+        user_answers = request.form.getlist(question_id) # Получаем все выбранные варианты ответов
+        question_text = request.form.get(f"question_text_{question_index}")
+
+        # Восстанавливаем вопрос из базы данных по тексту вопроса
+        selected_question = next((q for q in questions if q['question'] == question_text), None)
+
+        if selected_question:
+            # Сравниваем ответы пользователя с правильными ответами
+            is_correct = set(user_answers) == set(selected_question['correct_answers'])
+            if is_correct:
+                correct_answers_count += 1
+
+    percentage_correct = (correct_answers_count / NUM_QUESTIONS) * 100
+
+    if percentage_correct >= PASSING_PERCENTAGE:
+        result_message = f"Тест пройден успешно! У вас {percentage_correct:.2f}% верных ответов."
+        result_status = "Успешно"
+    else:
+        result_message = f"Тест не пройден. У вас {percentage_correct:.2f}% верных ответов."
+        result_status = "Неуспешно"
+
+    # Сохраняем результаты в CSV
+    try:
+        with open(RESULTS_FILE, mode='a', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow([fio, correct_answers_count, result_status])
+    except Exception as e:
+        print(f"Ошибка при записи в файл: {e}")
+        result_message += "\nНе удалось сохранить результаты в файл." # сообщаем об ошибке
+
+    return render_template('result.html', fio=fio, result_message=result_message)
+
+# Запуск приложения
+if __name__ == '__main__':
+    app.run(debug=True)
