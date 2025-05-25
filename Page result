@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Результаты теста</title>
+</head>
+<body>
+    <h1>Результаты теста</h1>
+    <p>ФИО: {{ fio }}</p>
+    <p>{{ result_message }}</p>
+
+    {% if incorrect_answers %}
+        <h2>Ошибки:</h2>
+        <ul>
+            {% for error in incorrect_answers %}
+                <li>
+                    <strong>Вопрос {{ error.question_number }}:</strong> {{ error.question }}<br>
+                    <strong>Ваш ответ:</strong> {{ ', '.join(error.user_answers) or 'Нет ответа' }}<br>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
