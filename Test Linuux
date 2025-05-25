@@ -126,6 +126,7 @@ def index():
 def result():
     fio = request.form['fio']
     correct_answers_count = 0
+    incorrect_answers = [] # Список для хранения информации о неправильных ответах
 
     # Получаем ответы пользователя и проверяем их
     for question_index in range(NUM_QUESTIONS):
@@ -141,6 +142,13 @@ def result():
             is_correct = set(user_answers) == set(selected_question['correct_answers'])
             if is_correct:
                 correct_answers_count += 1
+            else:
+                incorrect_answers.append({
+                    'question': selected_question['question'],
+                    'user_answers': user_answers,
+                    'correct_answers': selected_question['correct_answers'],
+                    'question_number': question_index + 1 # нумерация с 1
+                })
 
     percentage_correct = (correct_answers_count / NUM_QUESTIONS) * 100
 
@@ -155,12 +163,19 @@ def result():
     try:
         with open(RESULTS_FILE, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow([fio, correct_answers_count, result_status])
+            # Заголовок
+            if file.tell() == 0: #Если файл пуст, записываем заголовок
+                writer.writerow(['ФИО', 'Правильных ответов', 'Статус', 'Ошибки (Вопрос:Ответ:Правильно)'])
+            # Формируем строку с информацией об ошибках для записи в CSV
+            errors_string = "; ".join([f"Вопрос {err['question_number']}: {', '.join(err['user_answers'])}:{', '.join(err['correct_answers'])}" for err in incorrect_answers])
+
+            writer.writerow([fio, correct_answers_count, result_status, errors_string])
+        print(f"Результаты успешно записаны в файл: {RESULTS_FILE}")  # Добавлено
     except Exception as e:
         print(f"Ошибка при записи в файл: {e}")
         result_message += "\nНе удалось сохранить результаты в файл." # сообщаем об ошибке
 
-    return render_template('result.html', fio=fio, result_message=result_message)
+    return render_template('result.html', fio=fio, result_message=result_message, incorrect_answers=incorrect_answers)
 
 # Запуск приложения
 if __name__ == '__main__':
