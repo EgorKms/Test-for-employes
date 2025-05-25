@@ -106,6 +106,71 @@ questions = [
         "options": ["chown", "chmodx", "chmod", "chaccess"],
         "correct_answers": ["chmod"]
     }
+    {
+        "question": "Какая команда используется для архивирования файлов/директорий в Linux?",
+        "options": ["7zip", "gzip", "tar", "compress"],
+        "correct_answers": []
+    },
+    {
+        "question": "Какая команда используется для сжатия файлов в Linux?",
+        "options": ["7zip", "gzip", "tar", "compress"],
+        "correct_answers": ["tar"]
+    },
+    {
+        "question": "Какие команды можно использовать для разархивирования файлов в Linux?",
+        "options": ["gunzip", "ungzip", "untar", "tar"],
+        "correct_answers": ["ungzip", "tar"]
+    },
+    {
+        "question": "Какая команда используется для поиска файлов и директорий по их имени в Linux?",
+        "options": ["find", "locate", "grep", "search"],
+        "correct_answers": ["find", "locate"]
+    },
+    {
+        "question": "Какая команда используется для поиска строки в содержимом файла в Linux?",
+        "options": ["find", "locate", "grep", "search"],
+        "correct_answers": ["grep"]
+    },
+    {
+        "question": "Чем отличаются жесткие и символьные ссылки в Linux?",
+        "options": [
+            "Жесткие ссылки могут указывать только на файлы, а символьные ссылки могут указывать и на файлы, и на директории.",
+            "Жесткие ссылки создаются с помощью команды ln -s, а символьные ссылки создаются с помощью команды ln.",
+            "Жесткие ссылки имеют ту же inode, что и исходный файл, а символьные ссылки имеют свой собственный inode.",
+            "Жесткие ссылки могут быть использованы для создания более одной ссылки на один и тот же файл, а символьные ссылки - только для создания одной ссылки."
+        ],
+        "correct_answers": ["Жесткие ссылки имеют ту же inode, что и исходный файл, а символьные ссылки имеют свой собственный inode.",]
+    }
+    {
+        "question": "Как создать жесткую ссылку на файл в Linux?",
+        "options": ["ln -s <исходный_файл> <ссылка>", "ln <ссылка> <исходный_файл>", "ln <исходный_файл> <ссылка>", "ln -h <исходный_файл> <ссылка>"],
+        "correct_answers": ["ln <исходный_файл> <ссылка>"]
+    },
+    {
+        "question": "Как создать символьную ссылку на файл в Linux?",
+        "options": ["ln -s <ссылка> <исходный_файл>", "ln -s <исходный_файл> <ссылка>", "ln <исходный_файл> <ссылка>", "ln -h <исходный_файл> <ссылка>"],
+        "correct_answers": ["ln -s <исходный_файл> <ссылка>"]
+    },
+    {
+        "question": "Как узнать, что файл является символьной ссылкой, используя команду ls?",
+        "options": ["По размеру файла. Символьные ссылки имеют небольшой размер.", "По правам доступа к файлу. Символьные ссылки имеют специальный символ в поле прав доступа.", "По расширению файла. Символьные ссылки имеют расширение .lnk.", "По типу файла. Символьные ссылки отображаются как l в поле типа файла."],
+        "correct_answers": ["По размеру файла. Символьные ссылки имеют небольшой размер.", "По типу файла. Символьные ссылки отображаются как l в поле типа файла."]
+    },
+    {
+        "question": "Как узнать, на какой файл указывает символьная ссылка, используя команду ls?",
+        "options": ["ls -l <символьная_ссылка>", "ls -s <символьная_ссылка>", "ls -h <символьная_ссылка>", "ls -a <символьная_ссылка>"],
+        "correct_answers": ["ls -l <символьная_ссылка>"]
+    },
+    {
+        "question": "Что произойдет, если удалить исходный файл, на который указывает жесткая ссылка?",
+        "options": ["Жесткая ссылка будет автоматически удалена.", "Жесткая ссылка останется, но будет указывать на несуществующий файл.", "Жесткая ссылка будет преобразована в символьную ссылку.", "Жесткая ссылка будет продолжать указывать на исходный файл."],
+        "correct_answers": ["Жесткая ссылка будет продолжать указывать на исходный файл."]
+    },
+    {
+        "question": "Для возможности перехода в каталог конкретному пользователю необходимы права:",
+        "options": ["На запись в каталог", "На чтение каталога", "На «выполнение» каталога", "На чтение и «выполнение» каталога"],
+        "correct_answers": ["На «выполнение» каталога"]
+    }
 ]
 
 # Конфигурация тестирования
@@ -132,23 +197,30 @@ def result():
     for question_index in range(NUM_QUESTIONS):
         question_id = f"question_{question_index}"
         user_answers = request.form.getlist(question_id) # Получаем все выбранные варианты ответов
-        question_text = request.form.get(f"question_text_{question_index}")
+        question_text = request.form.get(f"question_text_{question_index}") # Получаем текст вопроса из формы!
 
         # Восстанавливаем вопрос из базы данных по тексту вопроса
-        selected_question = next((q for q in questions if q['question'] == question_text), None)
+        # selected_question = next((q for q in questions if q['question'] == question_text), None) #больше не нужно
 
-        if selected_question:
-            # Сравниваем ответы пользователя с правильными ответами
-            is_correct = set(user_answers) == set(selected_question['correct_answers'])
-            if is_correct:
-                correct_answers_count += 1
-            else:
-                incorrect_answers.append({
-                    'question': selected_question['question'],
-                    'user_answers': user_answers,
-                    'correct_answers': selected_question['correct_answers'],
-                    'question_number': question_index + 1 # нумерация с 1
-                })
+        #if selected_question: #больше не нужно
+        is_correct = False
+        #находим правильный ответ в списке вопросов.
+        for q in questions:
+            if q["question"] == question_text:
+                selected_question = q
+                # Сравниваем ответы пользователя с правильными ответами
+                is_correct = set(user_answers) == set(selected_question['correct_answers'])
+                break
+
+        if is_correct:
+            correct_answers_count += 1
+        else:
+            incorrect_answers.append({
+                'question': question_text, # Текст вопроса берем из запроса
+                'user_answers': user_answers,
+                'correct_answers': selected_question['correct_answers'],
+                'question_number': question_index + 1 # нумерация с 1
+            })
 
     percentage_correct = (correct_answers_count / NUM_QUESTIONS) * 100
 
@@ -165,11 +237,15 @@ def result():
             writer = csv.writer(file)
             # Заголовок
             if file.tell() == 0: #Если файл пуст, записываем заголовок
-                writer.writerow(['ФИО', 'Правильных ответов', 'Статус', 'Ошибки (Вопрос:Ответ:Правильно)'])
-            # Формируем строку с информацией об ошибках для записи в CSV
-            errors_string = "; ".join([f"Вопрос {err['question_number']}: {', '.join(err['user_answers'])}:{', '.join(err['correct_answers'])}" for err in incorrect_answers])
+                writer.writerow(['ФИО', 'Правильных ответов', 'Статус', 'Номер Вопроса','Текст вопроса', 'Ответы пользователя', 'Правильные ответы'])
 
-            writer.writerow([fio, correct_answers_count, result_status, errors_string])
+            # Записываем основную информацию о результате
+            writer.writerow([fio, correct_answers_count, result_status, "", "", "", ""]) #пустая строка для общей инфы
+
+            # Записываем информацию о каждой ошибке
+            for error in incorrect_answers:
+                writer.writerow(["", "", "", error['question_number'], error['question'], ", ".join(error['user_answers']), ", ".join(error['correct_answers'])])
+
         print(f"Результаты успешно записаны в файл: {RESULTS_FILE}")  # Добавлено
     except Exception as e:
         print(f"Ошибка при записи в файл: {e}")
