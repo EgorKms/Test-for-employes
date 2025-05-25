@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест</title>
+</head>
+<body>
+    <h1>Тест</h1>
+    <p>Здравствуйте, {{ fio }}!</p>
+    <form method="post" action="/result">
+        <input type="hidden" name="fio" value="{{ fio }}">  <!-- Передаем ФИО -->
+        {% for i, question in enumerate(questions) %}
+            <div>
+                <h2>Вопрос {{ i + 1 }}: {{ question['question'] }}</h2>
+                <input type="hidden" name="question_text_{{i}}" value="{{question['question']}}">
+                <ul>
+                    {% for j, option in enumerate(question['options']) %}
+                        <li>
+                            <label>
+                                <input type="checkbox" name="question_{{ i }}" value="{{ option }}">
+                                {{ option }}
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+        <button type="submit">Завершить тест</button>
+    </form>
+</body>
+</html>
