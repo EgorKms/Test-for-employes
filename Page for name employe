@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ввод ФИО</title>
+</head>
+<body>
+    <h1>Введите ваше ФИО</h1>
+    <form method="post" action="/">
+        <label for="fio">ФИО:</label>
+        <input type="text" id="fio" name="fio" required><br><br>
+        <button type="submit">Начать тест</button>
+    </form>
+</body>
+</html>
