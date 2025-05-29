@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import random
 import csv
 
-app = Flask(__name__)
+ck_test = Flask(__name__)
 
 # База вопросов и ответов
 questions = [
@@ -157,19 +157,299 @@ questions = [
         "correct_answers": ["На «выполнение» каталога"]
     },
     {
-        "question": "Чем отличаются жесткие и символьные ссылки в Linux?",
-        "options": ["Жесткие ссылки могут указывать только на файлы, а символьные ссылки могут указывать и на файлы и на директории.", "Жесткие ссылки создаются с помощью команды ln -s. Cимвольные ссылки создаются с помощью команды ln.", "Жесткие ссылки имеют ту же inode, что и исходный файл, а символьные ссылки имеют свой собственный inode.", "Жесткие ссылки могут быть использованы для создания более одной ссылки на один и тот же файл, а символьные ссылки - только для создания одной ссылки."],
-        "correct_answers": ["Жесткие ссылки имеют ту же inode, что и исходный файл, а символьные ссылки имеют свой собственный inode."]
-    }    
+        'question': 'Для возможности чтения содержимого каталога конкретному пользователю необходимы права:',
+        'options': ['На чтение каталога', 'На запись в каталог', 'На «выполнение» каталога', 'На чтение и «выполнение» каталога'],
+        'correct_answers': ['На чтение каталога', 'На «выполнение» каталога']
+    },
+    {
+        'question': 'Для возможности создания файлов в каталоге конкретному пользователю необходимы права:',
+        'options': ['На чтение каталога', 'На запись в каталог', 'На «выполнение» каталога', 'На чтение и «выполнение» каталога'],
+        'correct_answers': ['На запись в каталог']
+    },
+	{
+        'question': 'В рабочей директории есть файл file.txt. Права доступа к нему -rwxr¬¬¬-xr--. Необходимо запретить читать файл всем остальным пользователям кроме владельца и группы-владельца, не изменяя остальных разрешений:',
+        'options': ['chmod -r file.txt', 'chmod 750 file.txt', 'chmod 057 file.txt', 'chmod o-r file.txt', 'chmod o:-r file.txt'],
+        'correct_answers': ['chmod o-r file.txt', 'chmod 750 file.txt']
+    },
+    {
+        'question': 'В рабочей директории есть файл file.txt. Права доступа к нему отсутствуют у всех. Необходимо добавить права на запись, чтение и выполнение для владельца, на чтение и выполнение для группы и на чтение для всех остальных:',
+        'options': ['chmod 457 file.txt', 'chmod 754 file.txt', 'chmod u+rwx g+rx o+r file.txt', 'chmod 777 file.txt'],
+        'correct_answers': ['chmod 754 file.txt', 'chmod u+rwx g+rx o+r file.txt']
+    },
+    {
+        'question': 'Необходимо создать файл garda.cfg в каталоге /opt/Garda c содержимым «secret». Вывод команды pwd: /opt/imperva. Выберите один или несколько вариантов:',
+        'options': ['touch secret > /opt/Garda/garda.cfg', 'touch secret < /opt/Garda/garda.cfg', 'echo secret > ../Garda/garda.cfg', 'echo /opt/Garda/garda.cfg < secret', 'echo secret > /opt/Garda/garda.cfg'],
+        'correct_answers': ['echo secret > ../Garda/garda.cfg', 'echo secret > /opt/Garda/garda.cfg']
+    },
+    {
+        'question': 'Какой текстовый редактор для терминала доступен в любой версии linux с момента установки ОС:',
+        'options': ['nano', 'vi (vim)', 'mcedit', 'ee'],
+        'correct_answers': ['vi (vim)']
+    },
+    {
+        'question': 'Выберите верные комбинации горячих клавиш при работе в nano:',
+        'options': ['ctrl+o - выйти; ctrl+s – сохранить; ctrl+h – поиск; ctrl+x – заменить; ctrl+z – отменить', 'ctrl+Esc – выйти; ctrl+s – сохранить; alt+f – поиск; ctrl+h – заменить; alt+z – отменить', 'ctrl+e – выйти; ctrl+s – сохранить; ctrl+f – поиск; ctrl+h – заменить; ctrl+z - отменить', 'ctrl+x – выйти; ctrl+o – сохранить; ctrl+w – поиск; ctrl+\\ - заменить; alt+u – отменить'],
+        'correct_answers': ['ctrl+x – выйти; ctrl+o – сохранить; ctrl+w – поиск; ctrl+\\ - заменить; alt+u – отменить']
+    },
+    {
+        'question': 'Файл редактировался в редакторе vi (vim). Как выйти из редактора:',
+        'options': ['ctrl+q – без сохранения; ctrl+w – с сохранением', ':q – без сохранения; :wq – с сохранением', ':wq – без сохранения; :q! ¬- с сохранением', ':q! – без сохранения; :wq – с сохранением'],
+        'correct_answers': [':q! – без сохранения; :wq – с сохранением']
+    },
+    {
+        'question': 'Какая команда используется для вывода содержимого текстового файла textfile в терминал в интерактивном режиме:',
+        'options': ['ls textfile', 'cat textfile', 'less textfile', 'nano textfile'],
+        'correct_answers': ['less textfile']
+    },
+    {
+        'question': 'Какая команда используется для вывода содержимого текстового файла textfile в терминал:',
+        'options': ['ls textfile', 'cat textfile', 'less textfile', 'nano textfile'],
+        'correct_answers': ['cat textfile']
+    },
+    {
+        'question': 'Как вывести 10 первых строк текстового файла textfile:',
+        'options': ['top -n 10 textfile', 'tail -n 10 textfile', 'head -n 10 textfile', 'bottom -n 10 textfile'],
+        'correct_answers': ['head -n 10 textfile']
+    },
+    {
+        'question': 'Как вывести 10 последних строк текстового файла textfile:',
+        'options': ['top -n 10 textfile', 'tail -n 10 textfile', 'head -n 10 textfile', 'bottom -n 10 textfile'],
+        'correct_answers': ['tail -n 10 textfile']
+    },
+    {
+        'question': 'Что такое журналируемая файловая система?',
+        'options': ['ФС с возможностью логирования всех действий с ней в журнал', 'ФС с возможностью журналирования действий чтения объектов', 'ФС с возможностью логирования действий записи объектов', 'ФС с возможностью восстанавливать данные из журнала после удаления'],
+        'correct_answers': ['ФС с возможностью логирования всех действий с ней в журнал']
+    },
+    {
+        'question': 'Журналируемыми файловыми системами являются:',
+        'options': ['ext2', 'ext4', 'NTFS', 'exFAT', 'FAT32'],
+        'correct_answers': ['ext4', 'NTFS']
+    },
+    {
+        'question': 'Что такое точка монтирования?',
+        'options': ['Раздел файловой системы', 'Каталог файловой системы в Linux, куда подключается целая файловая система или блочное устройство', 'Раздел файловой системы в Linux, куда подключается целая файловая система или блочное устройство', 'Файловая система'],
+        'correct_answers': ['Каталог файловой системы в Linux, куда подключается целая файловая система или блочное устройство']
+    },
+    {
+        'question': 'Точкой монтирования корневого раздела в Linux является:',
+        'options': ['C:', '/dev/root', '/', '/dev/sda'],
+        'correct_answers': ['/']
+    },
+    {
+        'question': 'Файл, содержащий информацию о монтируемых при загрузке ОС файловых системах, называется',
+        'options': ['/etc/mount', '/dev/mount', '/etc/fstab', '/root/fstab'],
+        'correct_answers': ['/etc/fstab']
+    },
+    {
+        'question': 'Вывести информацию о всех доступных блочных устройствах в ОС можно командами:',
+        'options': ['dmesg', 'lsblk', 'lspci', 'df -a', 'fdisk -l'],
+        'correct_answers': ['lsblk', 'fdisk -l']
+    },
+    {
+        'question': 'Вывести информацию о всех смонтированных файловых системах возможно командами:',
+        'options': ['dmesg', 'lsblk', 'lspci', 'df -a', 'fdisk -l'],
+        'correct_answers': ['df -a']
+    },
+    {
+        'question': 'Вывести информацию о всех разделах блочного устройства возможно командами:',
+        'options': ['dmesg', 'lsblk', 'lspci', 'df -a', 'fdisk -l'],
+        'correct_answers': ['lsblk', 'fdisk -l', 'df -a']
+    },
+    {
+        'question': 'Необходимо смонтировать устройство /dev/sr0 в каталог /media/cdrom. Запись об устройстве /dev/sr0 имеется в файле /etc/fstab:',
+        'options': ['mount -a', 'mount /media/cdrom /dev/sr0 -o defaults', 'mount /dev/sr0 /media/cdrom -o defaults', 'sudo mount /dev/sr0 /media/cdrom -o defaults', 'mount --target /media/cdrom'],
+        'correct_answers': ['mount -a', 'sudo mount /dev/sr0 /media/cdrom -o defaults']
+    },
+	{
+        'question': 'Необходимо отмонтировать устройство /dev/usbflash0, смонтированное в каталог пользователя /home/gardauser/usbflash0. Устройство было смонтировано пользователем gardauser:',
+        'options': ['unmount /dev/usbflash0 /home/gardauser/usbflash0', 'umount -a', 'unmount /dev/usbflash0', 'umount /dev/usbflash0', 'umount /home/gardauser/usbflash0'],
+        'correct_answers': ['umount /home/gardauser/usbflash0', 'umount /dev/usbflash0']
+	},
+	{
+        'question': 'Необходимо отмонтировать устройство /dev/usbflash0, смонтированное в каталог пользователя /media/usbflash0. Устройство было смонтировано пользователем root. Пользователь не добавлен в sudoers:',
+        'options': ['unmount /dev/usbflash0 /media/usbflash0', 'umount -a', 'unmount /dev/usbflash0', 'sudo umount /dev/usbflash0', 'sudo umount /home/gardauser/usbflash0', 'Ни один из вариантов не является верным'],
+        'correct_answers': ['Ни один из вариантов не является верным']
+	},
+	{
+		'question': 'Для запуска приложений c правами root необходимо:',
+		'options': ['быть суперпользователем', 'иметь права на запуск исполняемого файла, быть суперпользователем или быть в списке sudoers', 'иметь права на запуск исполняемого файла', 'быть в списке sudoers'],
+		'correct_answers': ['иметь права на запуск исполняемого файла, быть суперпользователем или быть в списке sudoers']
+	},
+	{
+		'question': 'Вы работает под непривелигированным пользователем guest. Чтобы сменить пользователя в терминале на user необходимо ввести:',
+		'options': ['sudo user <пароль пользователя>', 'su user <пароль_пользователя>', 'su user, затем пароль пользователя', 'sudo su user'],
+		'correct_answers': ['su user, затем пароль пользователя']
+	},
+	{
+		'question': 'Чтобы добавить пользователя testuser в систему необходимо:',
+		'options': ['adduser testuser', 'useradd testuser', 'user add testuser', 'add user testuser'],
+		'correct_answers': ['adduser testuser', 'useradd testuser']
+	},
+	{
+		'question': 'Добавить пользователя testuser в группу garda, не удаляя его из всех остальных групп возможно:',
+		'options': ['usermod testuser -aG garda', 'usermod garda -aG testuser', 'usermod testuser -G garda', 'usermod garda -G testuser'],
+		'correct_answers': ['usermod testuser -aG garda']
+	},
+	{
+		'question': 'Как вывести список всех групп, куда включен пользователь testuser?',
+		'options': ['testuser groups', 'groups', 'groups testuser', 'list groups testuser'],
+		'correct_answers': ['groups testuser']
+	},
+	{
+		'question': 'Как вывести всех членов группы root?',
+		'options': ['users root', 'users', 'root users', 'cat /etc/group | grep root:'],
+		'correct_answers': ['cat /etc/group | grep root:']
+	},
+	{
+		'question': 'Как прервать текущую операцию, выполняемую в терминале?',
+		'options': ['ctrl+z', 'ctrl+x', 'ctrl+c', 'ctrl+Esc'],
+		'correct_answers': ['ctrl+c']
+	},
+	{
+		'question': 'Как перевести в фоновый режим текущую операцию, выполняемую в терминале?',
+		'options': ['ctrl+z', 'ctrl+x', 'ctrl+c', 'ctrl+Esc'],
+		'correct_answers': ['ctrl+z']
+	},
+	{
+		'question': 'Как перевести на передний план фоновый процесс в терминале?',
+		'options': ['foreground', 'fg', 'FG', 'FOREGROUND'],
+		'correct_answers': ['fg']
+	},
+	{
+		'question': 'Какая команда используется для вывода процессов, наиболее утилизирующих ресурсы системы в Linux?',
+		'options': ['ps -aux', 'tasklist -a', 'process -a', 'top'],
+		'correct_answers': ['top']
+	},
+	{
+		'question': 'Как посмотреть запущенные процессы в текущей терминальной сессии в Linux:',
+		'options': ['ps', 'tasklist', 'process', 'top'],
+		'correct_answers': ['ps']
+	},
+	{
+		'question': 'Какая команда используется для остановки выполнения процесса в Linux?',
+		'options': ['kill', 'stop', 'end', 'terminate'],
+		'correct_answers': ['kill']
+	},
+	{
+		'question': 'Как добавить сервис в автозагрузку?',
+		'options': ['systemctl on <имя_сервиса>', 'service enable <имя_сервиса>', 'service <имя_сервиса> enable', 'systemctl enable <имя_сервиса>'],
+		'correct_answers': ['systemctl enable <имя_сервиса>']
+	},
+	{
+		'question': 'Необходимо перезапустить сервис агента ГардаБД dbs_agent. Права root имеются. Выберите один или несколько вариантов:',
+		'options': ['systemctl stop dbs_agent && systemctl start dbs_agent', 'systemctl dbs_agent stop && systemctl dbs_agent start', 'service dbs_agent restart', 'service restart dbs_agent', 'systemctl restart dbs_agent.service', 'systemctl dbs_agent.service restart', 'systemctl restart dbs_agent', 'systemctl dbs_agent restart'],
+		'correct_answers': ['systemctl stop dbs_agent && systemctl start dbs_agent', 'service dbs_agent restart', 'systemctl restart dbs_agent.service', 'systemctl restart dbs_agent']
+	},
+	{
+		'question': 'В рабочей директории находится скрипт с именем «script.sh». Права на запуск имеются. Вывод команды pwd: /home/gardauser. Выберите один или несколько ошибочных вариантов запуска скрипта на выполнение:',
+		'options': ['script.sh', '/home/gardauser/script.sh', './script.sh', '/home/gardauser/.script.sh', '../../home/gardauser/script.sh'],
+		'correct_answers': ['script.sh', '/home/gardauser/.script.sh', '../../home/gardauser/script.sh']
+	},
+	{
+		'question': 'Выберите минимально необходимые условия для возможности запуска исполняемого файла (скрипта):',
+		'options': ['У пользователя должны быть необходимые права на чтение исполняемого файла', 'У группы пользователя должны быть права на чтение исполняемого файла', 'У пользователя должны быть права на запуск исполняемого файла', 'У группы пользователя должны быть права на запуск исполняемого файла', 'Файл должен быть исполняемым', 'Расширение файла должно указывать на исполняемый файл: .sh, .shell, .py и т.д.'],
+		'correct_answers': ['У пользователя должны быть права на запуск исполняемого файла', 'Файл должен быть исполняемым', 'Расширение файла должно указывать на исполняемый файл: .sh, .shell, .py и т.д.']
+	},
+	{
+		'question': 'Необходимо закомментировать строку в bash-скрипте, выберите один или несколько вариантов:',
+		'options': ['# comment', '!-- comment', '/* comment */', '// comment'],
+		'correct_answers': ['# comment']
+	},
+	{
+		'question': 'Необходимо написать скрипт на bash. Выберите правильную последовательность действий:',
+		'options': ['Создать файл с расширением .sh, в самой верхней строке задать директиву #!/bin/bash, сохранить, сделать файл исполняемым с помощью chmod', 'Создать файл, в самой верхней строке задать директиву #!/bin/bash, сохранить, сделать файл исполняемым с помощью chmod', 'Создать файл с расширением .sh, в самой верхней строке задать директиву !/bin/bash, сохранить, сделать файл исполняемым с помощью chmod', 'Создать файл, в самой верхней строке задать директиву !/bin/bash, сохранить, сделать файл исполняемым с помощью chmod'],
+		'correct_answers': ['Создать файл с расширением .sh, в самой верхней строке задать директиву #!/bin/bash, сохранить, сделать файл исполняемым с помощью chmod']
+	},
+	{
+		'question': 'Необходимо узнать все ip-адреса сетевых интерфейсов сервера. Выберите возможные варианты:',
+		'options': ['ipconfig /all', 'ip a', 'iwconfig -a', 'ifconfig -a'],
+		'correct_answers': ['ip a', 'ifconfig -a']
+	},
+	{
+        'question': 'Необходимо вывести таблицу маршрутизации. Выберите возможные варианты:',
+        'options': ['netstat -an', 'route print', 'routel', 'netstat -rn', 'route –rn', 'ip route'],
+        'correct_answers': ['netstat -rn', 'route –rn', 'ip route']
+	},
+	{
+		'question': 'Необходимо задать ip-адрес 10.20.30.40/29 для интерфейса bond0. Выберите возможные варианты:',
+		'options': ['ipconfig bond0 ip 10.20.30.40 netmask 255.255.255.248', 'ip address add 10.20.30.40/255.255.255.248 dev bond0', 'iconfig bond0 10.20.30.40 netmask 255.255.255.248', 'отредактировать файл /etc/network/interfaces и перезагрузить службу network', 'отредактировать файл /etc/netconfig и перезагрузить службу network'],
+		'correct_answers': ['ip address add 10.20.30.40/29 dev bond0', 'отредактировать файл /etc/network/interfaces и перезагрузить службу network']
+	},
+	{
+		'question': 'В чем отличие в реализации эхо-запросов (ping) в Linux от Windows:',
+		'options': ['Размер пакета, отправляемый по умолчанию', 'В Linux – round trip time; в Windows – One way', 'Количество повторений по умолчанию', 'В Windows задержка указывается с точностью до секунды, в Linux – тысячных секунды.'],
+		'correct_answers': ['Количество повторений по умолчанию', 'Размер пакета, отправляемый по умолчанию', 'В Windows задержка указывается с точностью до секунды, в Linux – тысячных секунды.']
+	},
+	{
+		'question': 'На сервере есть 3 активных сетевых интерфейса ¬– eth0, bond0, eth1. Необходимо проверить по какому маршруту идет трафик с интерфейса eth1 до узла 1.2.3.4:',
+		'options': ['tracert -S eth1 1.2.3.4', 'tracert -S <IP-адрес_eth1> 1.2.3.4', 'traceroute 1.2.3.4', 'traceroute -i eth1 1.2.3.4'],
+		'correct_answers': ['traceroute -i eth1 1.2.3.4']
+	},
+	{
+		'question': 'Какие из команд принимают в качестве параметров регулярные выражения?',
+		'options': ['grep', 'find', 'search', 'match', 'sed'],
+		'correct_answers': ['grep', 'find', 'sed']
+	},
+	{
+		'question': 'Какой символ используется для обозначения начала строки в регулярном выражении?',
+		'options': ['^', '$', '*', '+'],
+		'correct_answers': ['^']
+	},
+	{
+		'question': 'Какой символ используется для обозначения конца строки в регулярном выражении?',
+		'options': ['^', '$', '*', '+'],
+		'correct_answers': ['$']
+	},
+	{
+		'question': 'Какой символ используется для обозначения любого символа в регулярном выражении?',
+		'options': ['.', '*', '?', '['],
+		'correct_answers': ['.']
+	},
+	{
+		'question': 'Какой символ используется для обозначения ноль или более повторений предыдущего символа в регулярном выражении?',
+		'options': ['.', '*', '?', '['],
+		'correct_answers': ['*']
+	},
+	{
+		'question': 'Какой символ используется для обозначения одного или более повторений предыдущего символа в регулярном выражении?',
+		'options': ['.', '*', '?', '+'],
+		'correct_answers': ['+']
+	},
+	{
+		'question': 'Какой символ используется для обозначения ноль или одного повторения предыдущего символа в регулярном выражении?',
+		'options': ['.', '*', '?', '['],
+		'correct_answers': ['?']
+	},
+	{
+		'question': 'Какой символ используется для обозначения альтернативы в регулярном выражении?',
+		'options': ['|', '&', '!', '%'],
+		'correct_answers': ['|']
+	},
+	{
+		'question': 'Какой символ используется для экранирования специальных символов в регулярном выражении?',
+		'options': ['\\', '^', '/', '*'],
+		'correct_answers': ['\\']
+	},
+	{
+		'question': 'Какая команда используется для замены совпадений с регулярным выражением в текстовом файле в Linux?',
+		'options': ['sed', 'replace', 'change', 'modify'],
+		'correct_answers': ['sed']
+	},
+	{
+		'question': 'Необходимо найти имена файлов c расширением .conf, содержащие подстроки “meteor” или “sniffer” в конце строки. Дополнительно необходимо вывести номера строк, в которых содержатся искомые подстроки. Каталог, в котором необходимо произвести поиск ¬ /opt:',
+		'options': ['find /opt -type f -name "*.conf" -exec grep -n -H -- -e meteor -e sniffer {} \\;', "find /opt -type f -name \"*.conf\" -exec grep -n -H -- 'meteor$\\|sniffer$' {} \\;", 'find /opt -type f -name "*.conf" -exec grep --number -H -- \'meteor$\\|sniffer$\' {} \\;', 'find /opt -type f -name "*.conf" | grep -n -H -- \'meteor$\\|sniffer$\' {} \\;', "find /opt -type f -name \"*.conf\" -exec grep -n -H -- -e meteor -e sniffer {} \\;"],
+		'correct_answers': ['find /opt -type f -name "*.conf" -exec grep -n -H -- -e meteor -e sniffer {} \\;']
+	}
 ]
 
 # Конфигурация тестирования
-NUM_QUESTIONS = 12
+NUM_QUESTIONS = 15
 PASSING_PERCENTAGE = 80
 RESULTS_FILE = 'C://Хлам//учеба DE//Работа и задачи//ДС//Тесты ДС//Скрипт для тестирования//test_results.csv'  # Имя файла для сохранения результатов
 
 # Маршруты Flask
-@app.route('/', methods=['GET', 'POST'])
+@ck_test.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         fio = request.form['fio']
@@ -177,7 +457,7 @@ def index():
         return render_template('test.html', fio=fio, questions=selected_questions, enumerate=enumerate)  # Передаем enumerate
     return render_template('index.html')  # Форма для ввода ФИО
 
-@app.route('/result', methods=['POST'])
+@ck_test.route('/result', methods=['POST'])
 def result():
     fio = request.form['fio']
     correct_answers_count = 0
@@ -225,12 +505,12 @@ def result():
     try:
         with open(RESULTS_FILE, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            # Заголовок
-            if file.tell() == 0: #Если файл пуст, записываем заголовок
+            # проверка заголовка, и что файл пуст. Это предотвращает повторную запись заголовка при каждом запуске теста.
+            if file.tell() == 0: #Если файл пуст, записываем заголовок. 
                 writer.writerow(['ФИО', 'Правильных ответов', 'Статус', 'Номер Вопроса','Текст вопроса', 'Ответы пользователя', 'Правильные ответы'])
 
             # Записываем основную информацию о результате
-            writer.writerow([fio, correct_answers_count, result_status, "", "", "", ""]) #пустая строка для общей инфы
+            writer.writerow([fio, correct_answers_count, result_status, "", "", "", ""]) #пустые строки для инфы об ошибках
 
             # Записываем информацию о каждой ошибке
             for error in incorrect_answers:
@@ -245,4 +525,6 @@ def result():
 
 # Запуск приложения
 if __name__ == '__main__':
-    app.run(debug=True)
+    ck_test.run(debug=True) 
+ # режим debug Автоматически перезагружает приложение при изменении кода. 
+ # Предоставляет отладчик, который позволяет пошагово выполнять код и анализировать значения переменных.
