@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Ввод ФИО</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Здравствуйте. Введите ваше ФИО.</h1>
