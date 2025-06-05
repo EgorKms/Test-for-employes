@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import random
 import csv
 
+
 ck_test = Flask(__name__)
+ck_test.secret_key = 'your_secret_key#$' # Уникальное значение, используемое для шифрования данных сессии.
 
 # База вопросов и ответов
 questions_linux = [
@@ -547,7 +549,7 @@ questions_network = [
   {
     "question": "Что можно сделать через Wireshark?",
     "options": ["Может быть использована для отладки и тестирования сетевых приложений", "Может быть использована для создания правил брэндмауэра", "Может быть использована для мониторинга и аудита сетевой безопасности", "Может быть использована для обнаружения и решение сетевых проблем", "Может быть использована для изучения работы сетевых протоколов"],
-    "correct_answers": ["Может быть использована для отладки и тестирования сетевых приложений", "Может быть использована для мониторинга и аудита сетевой безопасности", "Может быть использована для обнаружения и решение сетевых проблем", "Может быть использована для изучения работы сетевых протоколов"]
+    "correct_answers": ["Может быть использована для отладки и тестирования сетевых приложений", "Может быть использована для создания правил брэндмауэра", "Может быть использована для мониторинга и аудита сетевой безопасности", "Может быть использована для обнаружения и решение сетевых проблем", "Может быть использована для изучения работы сетевых протоколов"]
   },
   {
     "question": "Для чего нужен сниффер?",
@@ -586,7 +588,7 @@ questions_network = [
   },
   {
     "question": "Клиенту выдан временный IP адрес. По прошествии какого времени клиент инициализирует процедуру получения нового IP или обновления адреса?",
-    "options": ["При наступлении 60% срока аренды", "По прошествии 3/4  срока аренды", "По прошествии 70% срока аренды", "При наступлении 50% срока аренды"],
+    "options": ["При наступлении 60% срока аренды", "По прошествии 3/4  срока аренды", "По прошествии 70% срока аренды", "По прошествии 50% срока аренды"],
     "correct_answers": ["По прошествии 50% срока аренды"]
   },
   {
@@ -606,41 +608,72 @@ RESULTS_FILE = 'C://Хлам//учеба DE//Работа и задачи//ДС/
 def index():
     if request.method == 'POST':
         fio = request.form['fio']
-        selected_questions = random.sample(questions_linux, NUM_QUESTIONS)
-        return render_template('test.html', fio=fio, questions=selected_questions, enumerate=enumerate)  # Передаем enumerate
+        test_type = request.form.get('test_type') # Получаем тип теста
+
+        if test_type == 'linux':
+            selected_questions = random.sample(questions_linux, NUM_QUESTIONS)
+            test_name = "Linux"
+        elif test_type == 'network':
+            selected_questions = random.sample(questions_network, NUM_QUESTIONS)
+            test_name = "сетям"
+        else:
+            # Обработка ошибки - если тип теста не выбран
+            return render_template('index.html', error_message="Пожалуйста, выберите тип теста.")
+
+        session['fio'] = fio # Сохраняем ФИО в сессию
+        session['selected_questions'] = selected_questions # Сохраняем вопросы
+        session['test_name'] = test_name
+        return redirect(url_for('test')) # Перенаправляем на страницу теста
+
     return render_template('index.html')  # Форма для ввода ФИО
+
+
+@ck_test.route('/test', methods=['GET'])  # Изменили с POST на GET, т.к. перенаправляем с POST
+def test():
+    if 'selected_questions' not in session or 'fio' not in session:
+        return redirect(url_for('index')) # Перенаправляем обратно, если нет вопросов или ФИО
+
+    fio = session['fio']
+    selected_questions = session['selected_questions']
+    test_name = session['test_name']
+
+    # Теперь используем enumerate в шаблоне для нумерации вопросов
+    return render_template('test.html', fio=fio, questions=selected_questions, enumerate=enumerate, test_name=test_name)
+
 
 @ck_test.route('/result', methods=['POST'])
 def result():
-    fio = request.form['fio']
+    if 'selected_questions' not in session or 'fio' not in session:
+        return redirect(url_for('index'))
+
+    fio = session['fio']
+    selected_questions = session['selected_questions']
+    test_name = session['test_name']
     correct_answers_count = 0
-    incorrect_answers = [] # Список для хранения информации о неправильных ответах
+    incorrect_answers = []  # Список для хранения информации о неправильных ответах
 
     # Получаем ответы пользователя и проверяем их
     for question_index in range(NUM_QUESTIONS):
         question_id = f"question_{question_index}"
-        user_answers = request.form.getlist(question_id) # Получаем все выбранные варианты ответов
-        question_text = request.form.get(f"question_text_{question_index}") # Получаем текст вопроса из формы!
+        user_answers = request.form.getlist(question_id)  # Получаем все выбранные варианты ответов
+        question_text = request.form.get(f"question_text_{question_index}")  # Получаем текст вопроса из формы!
 
-        #if selected_question: #больше не нужно
-        is_correct = False
-        #находим правильный ответ в списке вопросов.
-        for q in questions_linux:
-            if q["question"] == question_text:
-                selected_question = q
-                # Сравниваем ответы пользователя с правильными ответами
-                is_correct = set(user_answers) == set(selected_question['correct_answers'])
-                break
+        # Находим правильный ответ в списке вопросов.
+        selected_question = next((q for q in selected_questions if q["question"] == question_text), None) # Ищем вопрос по тексту!
 
-        if is_correct:
-            correct_answers_count += 1
+        if selected_question:
+            # Сравниваем ответы пользователя с правильными ответами
+            if set(user_answers) == set(selected_question['correct_answers']):
+                correct_answers_count += 1
+            else:
+                incorrect_answers.append({
+                    'question': question_text,  # Текст вопроса берем из запроса
+                    'user_answers': user_answers,
+                    'correct_answers': selected_question['correct_answers'],
+                    'question_number': question_index + 1  # нумерация с 1
+                })
         else:
-            incorrect_answers.append({
-                'question': question_text, # Текст вопроса берем из запроса
-                'user_answers': user_answers,
-                'correct_answers': selected_question['correct_answers'],
-                'question_number': question_index + 1 # нумерация с 1
-            })
+            print(f"Ошибка: Вопрос '{question_text}' не найден в списке вопросов.") # Обработка ошибки, если вопрос не найден (маловероятно, но хорошо иметь)
 
     percentage_correct = (correct_answers_count / NUM_QUESTIONS) * 100
 
