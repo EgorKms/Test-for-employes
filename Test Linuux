@@ -1,7 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import random
 import csv
+import webbrowser
+import threading
 
+def open_browser():
+       webbrowser.open('http://127.0.0.1:5000')
 
 ck_test = Flask(__name__)
 ck_test.secret_key = 'your_secret_key#$' # Уникальное значение, используемое для шифрования данных сессии.
@@ -599,7 +603,7 @@ questions_network = [
 ]
 
 # Конфигурация тестирования
-NUM_QUESTIONS = 1
+NUM_QUESTIONS = 20
 PASSING_PERCENTAGE = 80
 RESULTS_FILE = 'C://Хлам//учеба DE//Работа и задачи//ДС//Тесты ДС//Скрипт для тестирования//test_results.csv'  # Имя файла для сохранения результатов
 
@@ -708,6 +712,7 @@ def result():
 
 # Запуск приложения
 if __name__ == '__main__':
+    threading.Timer(1, open_browser).start()
     ck_test.run(debug=True) 
  # режим debug Автоматически перезагружает приложение при изменении кода. 
  # Предоставляет отладчик, который позволяет пошагово выполнять код и анализировать значения переменных.
