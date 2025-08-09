@@ -1,31 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Тест</title>
-	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Тест - {{ test_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Тест</h1>
+    <h1>Тест по {{ test_name }}</h1>
     <p>Здравствуйте, {{ fio }}!</p>
-    <form method="post" action="/result">
-        <input type="hidden" name="fio" value="{{ fio }}">  <!-- Передаем ФИО -->
-        {% for i, question in enumerate(questions) %}
-            <div>
-                <h2>Вопрос {{ i + 1 }}: {{ question['question'] }}</h2>
-                <input type="hidden" name="question_text_{{i}}" value="{{question['question']}}">
-                <ul>
-                    {% for j, option in enumerate(question['options']) %}
-                        <li>
-                            <label>
-                                <input type="checkbox" name="question_{{ i }}" value="{{ option }}">
-                                {{ option }}
-                            </label>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
+    <p>Выберите один или несколько вариантов ответа. В каждом вопросе есть как минимум один верный вариант ответа.</p>
+
+    <h2>{{ question }}</h2>  <!--  Отображаем текст вопроса -->
+    <form method="POST">
+        {% for option in options %}
+            <input type="checkbox" id="answer_{{ loop.index0 }}" name="answer" value="{{ option }}" name="answer">
+            <label for="answer_{{ loop.index0 }}">{{ option }}</label><br>
         {% endfor %}
-        <button type="submit">Завершить тест</button>
+        <button type="submit">Ответить</button>
     </form>
 </body>
 </html>
