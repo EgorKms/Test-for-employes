@@ -1,131 +1,176 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-import random
-import csv
+from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
+import random
 import json
-import webbrowser
-import threading
+import csv  # Добавляем модуль csv
+import threading  # Добавляем модуль threading
+import webbrowser  # Добавляем модуль webbrowser
 
-def open_browser():
-       webbrowser.open('http://127.0.0.1:5000')
-       
-ck_test = Flask(__name__)
-ck_test.secret_key = 'your_secret_key#$' # Уникальное значение, используемое для шифрования данных сессии.
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Change this!
 
-# Конфигурация тестирования
-NUM_QUESTIONS = 10
-PASSING_PERCENTAGE = 80
-RESULTS_FILE = 'C://Хлам//учеба DE//Работа и задачи//ДС//Тесты ДС//Скрипт для тестирования//test_results.csv'  # Имя файла для сохранения результатов
+NUM_QUESTIONS = 5
+DATABASE_PATH = 'questions_with_topics.db'
+PASSING_PERCENTAGE = 80 # Добавляем порог прохождения теста
+RESULTS_FILE = 'results.csv'  # Добавляем имя файла для сохранения результатов
 
-# База вопросов и ответов. Функция рандомного взятия вопров согласно теме тестирования.
-DATABASE_PATH = "C:\Хлам\учеба DE\Работа и задачи\ДС\Тесты ДС\Скрипт для тестирования\questions_with_topics.db"
-
-def get_questions_by_topic(topic, num_questions=NUM_QUESTIONS):
+def get_questions_from_db(count, topic):
+    """
+    Получает вопросы из базы данных и возвращает их в виде списка.
+    """
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
-    query = """
-        SELECT question, options, correct_answers
-        FROM questions
-        WHERE topic = ?
-        ORDER BY RANDOM()
-        LIMIT ?
+
+    # Учитываем topic в запросе
+    cursor.execute("SELECT id FROM questions WHERE topic = ?", (topic,))
+    all_ids = [row[0] for row in cursor.fetchall()]
+
+    # Проверяем, что количество запрашиваемых вопросов не превышает доступное
+    if count > len(all_ids):
+        count = len(all_ids)
+        print(f"Предупреждение: Доступно только {count} вопросов по теме '{topic}'. Будет задано {count} вопросов.")
+
+    random.shuffle(all_ids) # Перемешиваем список всех ID
+    random_question_ids = random.sample(all_ids, count) # Берем случайные id из перемешанного списка
+
+    conn.close()
+    return random_question_ids  # Возвращаем список id
+
+def get_question_data(question_id):
     """
-    cursor.execute(query, (topic, num_questions))
-    questions = cursor.fetchall()
+    Извлекает данные вопроса из базы данных по его ID.
+    """
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT question, options, correct_answers FROM questions WHERE id = ?", (question_id,))
+    question_data = cursor.fetchone()
     conn.close()
 
-    result = []
-    for question_text, options_json, correct_answers_json in questions:
+    if question_data:
+        question, options_json, correct_answers_json = question_data
         options = json.loads(options_json)
-        correct_answers = json.loads(correct_answers_json)
-        result.append({
-            'question': question_text,
+        correct_answers = json.loads(correct_answers_json) #ИСПРАВЛЕНО: десериализуем поле correct_answers
+        return {
+            'question': question,
             'options': options,
-            'correct_answers': correct_answers
-        })
-    return result
+            'correct_answers': correct_answers,
+            'id': question_id
+        }
+    else:
+        return None
 
-
-# Маршруты Flask
-
-@ck_test.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         fio = request.form['fio']
         test_type = request.form.get('test_type') # Получаем тип теста
 
         if test_type == 'linux':
-            selected_questions = get_questions_by_topic('Linux', NUM_QUESTIONS)
-            test_name = "Linux"
+            topic = 'Linux'
         elif test_type == 'network':
-            selected_questions = get_questions_by_topic('Сети', NUM_QUESTIONS)
-            test_name = "сетям"
+            topic = 'Сети'
         else:
             # Обработка ошибки - если тип теста не выбран
             return render_template('index.html', error_message="Пожалуйста, выберите тип теста.")
 
-# Сериализация списка вопросов в JSON перед сохранением
+        # Используем get_questions_from_db для получения списка id
+        question_ids = get_questions_from_db(NUM_QUESTIONS, topic)
+
+        # Сохраняем список id вопросов в сессию
         session['fio'] = fio  # Сохраняем ФИО в сессию
-        session['selected_questions'] = json.dumps(selected_questions)  # Сохраняем сериализованный список вопросов
-        session['test_name'] = test_name
-        return redirect(url_for('test'))  # Перенаправляем на страницу теста
+        session['question_ids'] = question_ids # Сохраняем список id вопросов
+        session['test_name'] = topic # Сохраняем имя теста
+        session['correct_count'] = 0 #  Начальное кол-во правильных ответов
+        session['incorrect_count'] = 0 #  Начальное кол-во неправильных ответов
+        session['incorrect_questions'] = [] # Индексы неправильных вопросов
+        session['user_answers'] = {} #  Ответы пользователя
+        return redirect(url_for('test', question_index=0))  # Перенаправляем на страницу теста, передаем начальный индекс
 
     return render_template('index.html')  # Форма для ввода ФИО
 
-
-@ck_test.route('/test', methods=['GET'])  # Изменили с POST на GET, т.к. перенаправляем с POST
-def test():
-    if 'selected_questions' not in session or 'fio' not in session:
+@app.route('/test/<int:question_index>', methods=['GET', 'POST'])
+def test(question_index):
+    if 'question_ids' not in session or 'fio' not in session:
         return redirect(url_for('index')) # Перенаправляем обратно, если нет вопросов или ФИО
 
+    question_ids = session['question_ids']
     fio = session['fio']
-    selected_questions_json = session['selected_questions']  
-    #десериализация списка вопросов
-    selected_questions = json.loads(selected_questions_json)
     test_name = session['test_name']
+    correct_count = session.get('correct_count', 0)
+    incorrect_count = session.get('incorrect_count', 0)
+    incorrect_questions = session.get('incorrect_questions', [])
+    user_answers = session.get('user_answers', {})
 
-    # Теперь используем enumerate в шаблоне для нумерации вопросов
-    return render_template('test.html', fio=fio, questions=selected_questions, enumerate=enumerate, test_name=test_name)
+
+    if question_index >= len(question_ids):
+        # Тест завершен
+        return redirect(url_for('result')) #ИСПРАВЛЕНО: перенаправление на новый маршрут
+
+    question_id = question_ids[question_index]
+    question_data = get_question_data(question_id)
+
+    if not question_data:
+        return "Ошибка: Вопрос не найден"
+
+    if request.method == 'POST':
+        user_answer = request.form.get('answer') # Получаем ответ пользователя
+        correct_answers = question_data['correct_answers'] #Правильные ответы
+
+        if user_answer in correct_answers: #  Проверка с правильными ответами из базы
+            correct_count += 1
+            session['correct_count'] = correct_count
+
+        else:
+            incorrect_count += 1
+            incorrect_questions.append(question_index)  # Сохраняем индекс вопроса
+            #user_answers[question_index] = user_answer #  Сохраняем ответ пользователя
+            session['incorrect_count'] = incorrect_count
+            session['incorrect_questions'] = incorrect_questions
+            #session['user_answers'] = user_answers
 
 
-@ck_test.route('/result', methods=['POST'])
+
+        next_question_index = question_index + 1
+        return redirect(url_for('test', question_index=next_question_index))
+
+    return render_template('test.html',
+                           fio=fio,
+                           question=question_data['question'], # ИСПРАВЛЕНО: Отображаем только один вопрос
+                           options=question_data['options'],# ИСПРАВЛЕНО: Передаем варианты ответов
+                           question_index=question_index + 1, # ИСПРАВЛЕНО: Номер текущего вопроса
+                           total_questions=len(question_ids), # ИСПРАВЛЕНО: Всего вопросов
+                           test_name=test_name
+                           )
+
+@app.route('/result')
 def result():
-    if 'selected_questions' not in session or 'fio' not in session:
+    if 'question_ids' not in session or 'fio' not in session:
         return redirect(url_for('index'))
 
+    correct_count = session.get('correct_count', 0)
+    incorrect_count = session.get('incorrect_count', 0)
+    incorrect_questions = session.get('incorrect_questions', [])
     fio = session['fio']
-    selected_questions_json = session['selected_questions']
-    selected_questions = json.loads(selected_questions_json)  # десериализация перед использованием
     test_name = session['test_name']
-    correct_answers_count = 0
-    incorrect_answers = []  # Список для хранения информации о неправильных ответах
-    test_name = session['test_name']
+    question_ids = session['question_ids']
+    user_answers = session.get('user_answers', {})
 
-    # Получаем ответы пользователя и проверяем их
-    for question_index in range(NUM_QUESTIONS):
-        question_id = f"question_{question_index}"
-        user_answers = request.form.getlist(question_id)  # Получаем все выбранные варианты ответов
-        question_text = request.form.get(f"question_text_{question_index}")  # Получаем текст вопроса из формы!
+    # Формируем список вопросов с информацией об ответах пользователя
+    results_list = []
+    for question_index in range(len(question_ids)):
+        question_id = question_ids[question_index]
+        question_data = get_question_data(question_id)
+        user_answer = user_answers.get(question_index, None) # Получаем ответ пользователя
+        results_list.append({
+            'question': question_data['question'],
+            'correct_answers': question_data['correct_answers'],
+            'user_answer': user_answer,
+            'is_correct': user_answer in question_data['correct_answers'] if user_answer else False # Сравнение ответа с правильным
+        })
 
-        # Находим правильный ответ в списке вопросов.
-        selected_question = next((q for q in selected_questions if q["question"] == question_text), None) # Ищем вопрос по тексту!
+    percentage_correct = (correct_count / len(question_ids)) * 100 #  ИСПРАВЛЕНО: расчет процента правильных ответов
 
-        if selected_question:
-            # Сравниваем ответы пользователя с правильными ответами
-            if set(user_answers) == set(selected_question['correct_answers']):
-                correct_answers_count += 1
-            else:
-                incorrect_answers.append({
-                    'question': question_text,  # Текст вопроса берем из запроса
-                    'user_answers': user_answers,
-                    'correct_answers': selected_question['correct_answers'],
-                    'question_number': question_index + 1  # нумерация с 1
-                })
-        else:
-            print(f"Ошибка: Вопрос '{question_text}' не найден в списке вопросов.") # Обработка ошибки, если вопрос не найден (маловероятно, но хорошо иметь)
-
-    percentage_correct = (correct_answers_count / NUM_QUESTIONS) * 100
-
+    # ИСПРАВЛЕНО: проверяем процент правильных ответов с пороговым значением
     if percentage_correct >= PASSING_PERCENTAGE:
         result_message = f"Тест пройден успешно! У вас {percentage_correct:.2f}% верных ответов."
         result_status = "Успешно"
@@ -138,26 +183,48 @@ def result():
         with open(RESULTS_FILE, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             # проверка заголовка, и что файл пуст. Это предотвращает повторную запись заголовка при каждом запуске теста.
-            if file.tell() == 0: #Если файл пуст, записываем заголовок. 
+            if file.tell() == 0: #Если файл пуст, записываем заголовок.
                 writer.writerow(['ФИО', 'Тема тестирования', 'Правильных ответов', 'Статус', 'Номер Вопроса','Текст вопроса', 'Ответы пользователя', 'Правильные ответы'])
 
             # Записываем основную информацию о результате
-            writer.writerow([fio, test_name, correct_answers_count, result_status, "", "", "", ""]) #пустые строки для инфы об ошибках
+            writer.writerow([fio, test_name, correct_count, result_status, "", "", "", ""]) #пустые строки для инфы об ошибках
 
             # Записываем информацию о каждой ошибке
-            for error in incorrect_answers:
-                writer.writerow(["", "", "", error['question_number'], error['question'], ", ".join(error['user_answers']), ", ".join(error['correct_answers'])])
+            for question_index in incorrect_questions:
+                question_id = question_ids[question_index] # Получаем ID вопроса по индексу
+                question_data = get_question_data(question_id) # Получаем данные вопроса по ID
+
+                if question_data:
+                    user_answer = user_answers.get(question_index, "")  # Получаем ответ пользователя
+                    writer.writerow(["", "", "", "",question_index + 1, question_data['question'], user_answer, ", ".join(question_data['correct_answers'])])
+                else:
+                    print(f"Ошибка: Вопрос с index {question_index} не найден.")
 
         print(f"Результаты успешно записаны в файл: {RESULTS_FILE}")  # Добавлено
+        file_message = f"Результаты успешно записаны в файл: {RESULTS_FILE}"
     except Exception as e:
         print(f"Ошибка при записи в файл: {e}")
-        result_message += "\nНе удалось сохранить результаты в файл." # сообщаем об ошибке
+        file_message = f"Ошибка при записи в файл: {e}"
 
-    return render_template('result.html', fio=fio, result_message=result_message, incorrect_answers=incorrect_answers)
+    session.clear()  # Очистка сессии после показа результатов
+
+    return render_template('results.html',
+                           fio=fio,
+                           correct_count=correct_count,
+                           incorrect_count=incorrect_count,
+                           results=results_list,
+                           test_name=test_name,
+                           result_message=result_message, # ИСПРАВЛЕНО: передаем сообщение о результате
+                           result_status=result_status,  # ИСПРАВЛЕНО: передаем статус результата
+                           file_message=file_message # ИСПРАВЛЕНО: передаем сообщение о записи в файл
+                           )
+
+def open_browser():
+    webbrowser.open_new('http://127.0.0.1:5000/')
 
 # Запуск приложения
 if __name__ == '__main__':
     threading.Timer(1, open_browser).start()
-    ck_test.run(debug=True)
- # режим debug Автоматически перезагружает приложение при изменении кода. 
+    app.run(debug=True)
+ # режим debug Автоматически перезагружает приложение при изменении кода.
  # Предоставляет отладчик, который позволяет пошагово выполнять код и анализировать значения переменных.
