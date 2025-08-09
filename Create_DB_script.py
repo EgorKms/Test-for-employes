@@ -29,14 +29,14 @@ new_questions = [
     },
     {
         "question": "Каким образом вывести неинтерактивную справку о параметрах команды?",
-        "options": ["<наименование_команды> -help", "help <наименование_команды>", "<наименование_команды> --help", "<наименование_команды> -h"],
-        "correct_answers": ["<наименование_команды> --help", "<наименование_команды> -h"],
+        "options": ["наименование_команды -help", "help наименование_команды", "наименование_команды --help", "наименование_команды -h"],
+        "correct_answers": ["наименование_команды --help", "наименование_команды -h"],
         "topic": "Linux"
     },
     {
         "question": "Подробный мануал по команде можно получить:",
-        "options": ["manual <наименование_команды>", "man <наименование_команды>", "help <наименование_команды>", "<наименование_команды> man"],
-        "correct_answers": ["man <наименование_команды>"],
+        "options": ["manual наименование_команды", "man наименование_команды", "help наименование_команды", "наименование_команды man"],
+        "correct_answers": ["man наименование_команды"],
         "topic": "Linux"
     },
     {
@@ -47,8 +47,8 @@ new_questions = [
     },
     {
         "question": "Как вывести путь до исполняемого файла команды?",
-        "options": ["locate <имя_команды>", "where <имя_команды>", "which <имя_команды>", "pwd <имя_команды>"],
-        "correct_answers": ["which <имя_команды>"],
+        "options": ["locate имя_команды", "where имя_команды", "which имя_команды", "pwd имя_команды"],
+        "correct_answers": ["which имя_команды"],
         "topic": "Linux"
     },
     {
@@ -71,8 +71,8 @@ new_questions = [
     },
     {
         "question": "Как можно узнать inode файла или директории в Linux?",
-        "options": ["ls -i", "inode <имя_файла>", "cat <имя_файла>", "stat <имя_файла>"],
-        "correct_answers": ["ls -i", "stat <имя_файла>"],
+        "options": ["ls -i", "inode имя_файла", "cat имя_файла", "stat имя_файла"],
+        "correct_answers": ["ls -i", "stat имя_файла"],
         "topic": "Linux"
     },
     {
@@ -161,20 +161,20 @@ new_questions = [
     },
     {
         "question": "Как создать жесткую ссылку на файл в Linux?",
-        "options": ["ln -s <исходный_файл> <ссылка>", "ln <ссылка> <исходный_файл>", "ln <исходный_файл> <ссылка>", "ln -h <исходный_файл> <ссылка>"],
-        "correct_answers": ["ln <исходный_файл> <ссылка>"],
+        "options": ["ln -s исходный_файл ссылка", "ln ссылка исходный_файл", "ln исходный_файл ссылка", "ln -h исходный_файл ссылка"],
+        "correct_answers": ["ln исходный_файл ссылка"],
         "topic": "Linux"
     },
     {
         "question": "Как создать символьную ссылку на файл в Linux?",
-        "options": ["ln -s <ссылка> <исходный_файл>", "ln -s <исходный_файл> <ссылка>", "ln <исходный_файл> <ссылка>", "ln -h <исходный_файл> <ссылка>"],
-        "correct_answers": ["ln -s <исходный_файл> <ссылка>"],
+        "options": ["ln -s ссылка исходный_файл", "ln -s исходный_файл ссылка", "ln исходный_файл ссылка", "ln -h исходный_файл ссылка"],
+        "correct_answers": ["ln -s исходный_файл ссылка"],
         "topic": "Linux"
     },
     {
         "question": "Как узнать, на какой файл указывает символьная ссылка, используя команду ls?",
-        "options": ["ls -l <символьная_ссылка>", "ls -s <символьная_ссылка>", "ls -h <символьная_ссылка>", "ls -a <символьная_ссылка>"],
-        "correct_answers": ["ls -l <символьная_ссылка>"],
+        "options": ["ls -l символьная_ссылка", "ls -s символьная_ссылка", "ls -h символьная_ссылка", "ls -a символьная_ссылка"],
+        "correct_answers": ["ls -l символьная_ссылка"],
         "topic": "Linux"
     },
     {
@@ -211,12 +211,6 @@ new_questions = [
         'question': 'В рабочей директории есть файл file.txt. Права доступа к нему отсутствуют у всех. Необходимо добавить права на запись, чтение и выполнение для владельца, на чтение и выполнение для группы и на чтение для всех остальных:',
         'options': ['chmod 457 file.txt', 'chmod 754 file.txt', 'chmod u+rwx g+rx o+r file.txt', 'chmod 777 file.txt'],
         'correct_answers': ['chmod 754 file.txt', 'chmod u+rwx g+rx o+r file.txt'],
-        "topic": "Linux"
-    },
-    {
-        'question': 'Необходимо создать файл garda.cfg в каталоге /opt/Garda c содержимым «secret». Вывод команды pwd: /opt/imperva. Выберите один или несколько вариантов:',
-        'options': ['touch secret > /opt/Garda/garda.cfg', 'touch secret < /opt/Garda/garda.cfg', 'echo secret > ../Garda/garda.cfg', 'echo /opt/Garda/garda.cfg < secret', 'echo secret > /opt/Garda/garda.cfg'],
-        'correct_answers': ['echo secret > ../Garda/garda.cfg', 'echo secret > /opt/Garda/garda.cfg'],
         "topic": "Linux"
     },
     {
@@ -334,8 +328,8 @@ new_questions = [
         'topic': 'Linux'
     },
     {
-        'question': 'Вы работает под непривилегированным пользователем guest. Чтобы сменить пользователя в терминале на user необходимо ввести:',
-        'options': ['sudo user <пароль пользователя>', 'su user <пароль_пользователя>', 'su user, затем пароль пользователя', 'sudo su user'],
+        'question': 'Вы работаете под непривилегированным пользователем guest. Чтобы сменить пользователя в терминале на user необходимо ввести:',
+        'options': ['sudo user пароль пользователя', 'su user пароль_пользователя', 'su user, затем пароль пользователя', 'sudo su user'],
         'correct_answers': ['su user, затем пароль пользователя'],
         'topic': 'Linux'
     },
@@ -401,8 +395,8 @@ new_questions = [
     },
     {
         'question': 'Как добавить сервис в автозагрузку?',
-        'options': ['systemctl on <имя_сервиса>', 'service enable <имя_сервиса>', 'service <имя_сервиса> enable', 'systemctl enable <имя_сервиса>'],
-        'correct_answers': ['systemctl enable <имя_сервиса>'],
+        'options': ['systemctl on имя_сервиса', 'service enable имя_сервиса', 'service имя_сервиса enable', 'systemctl enable имя_сервиса'],
+        'correct_answers': ['systemctl enable имя_сервиса'],
         'topic': 'Linux'
     },
     {
@@ -461,7 +455,7 @@ new_questions = [
     },
     {
         'question': 'На сервере есть 3 активных сетевых интерфейса ¬– eth0, bond0, eth1. Необходимо проверить по какому маршруту идет трафик с интерфейса eth1 до узла 1.2.3.4:',
-        'options': ['tracert -S eth1 1.2.3.4', 'tracert -S <IP-адрес_eth1> 1.2.3.4', 'traceroute 1.2.3.4', 'traceroute -i eth1 1.2.3.4'],
+        'options': ['tracert -S eth1 1.2.3.4', 'tracert -S IP-адрес_eth1 1.2.3.4', 'traceroute 1.2.3.4', 'traceroute -i eth1 1.2.3.4'],
         'correct_answers': ['traceroute -i eth1 1.2.3.4'],
         'topic': 'Linux'
     },
