@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Ввод ФИО</title>
+    <title>Ввод данных</title>
 	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Здравствуйте. Введите ваше ФИО.</h1>
-    <form method="post" action="/">
+    <h1>Введите ФИО и выберите тему тестирования</h1>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>  <!-- Отображение ошибки -->
+    {% endif %}
+    <form method="POST">
         <label for="fio">ФИО:</label>
         <input type="text" id="fio" name="fio" required><br><br>
+
+        <label for="test_type">Выберите тест:</label>
+        <select id="test_type" name="test_type" class="test-type-select">
+            <option value="linux">Linux тестирование</option>
+            <option value="network">Сети тестирование</option>
+        </select><br><br>
+
         <button type="submit">Начать тест</button>
     </form>
 </body>
