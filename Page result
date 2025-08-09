@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Результаты теста</title>
+    <title>Результат теста - {{ test_name }}</title>
 	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Результаты теста</h1>
+    <h1>Результат теста по {{ test_name }}</h1>
     <p>ФИО: {{ fio }}</p>
+	<p>ФИО: {{ fio }}</p>
+    <p>Неправильных ответов: {{ incorrect_count }}</p>
     <p>{{ result_message }}</p>
-
+	
     {% if incorrect_answers %}
         <h2>Ошибки:</h2>
         <ul>
